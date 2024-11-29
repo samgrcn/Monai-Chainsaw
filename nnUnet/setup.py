@@ -4,14 +4,14 @@ import gzip
 import nibabel as nib
 import json
 
-#Setting up environment variables TO BE UPDATED
-os.environ['nnUNet_raw_data_base'] = '/Users/samuel/Documents/EPFL/BA5/Monai-ESS/nnUnet/nnUNet_raw_data_base'
-os.environ['nnUNet_preprocessed'] = '/Users/samuel/Documents/EPFL/BA5/Monai-ESS/nnUnet/nnUNet_preprocessed'
-os.environ['RESULTS_FOLDER'] = '/Users/samuel/Documents/EPFL/BA5/Monai-ESS/nnUnet/nnUNet_trained_models'
+# Setting up environment variables TO BE UPDATED
+os.environ['nnUNet_raw'] = '/home/garcin/PycharmProjects/Monai-ESS/nnUnet/nnUNet_raw'
+os.environ['nnUNet_preprocessed'] = '/home/garcin/PycharmProjects/Monai-ESS/nnUnet/nnUNet_preprocessed'
+os.environ['nnUNet_results'] = '/home/garcin/PycharmProjects/Monai-ESS/nnUnet/nnUNet_results'
 
 # Paths
 original_data_dir = '../data/'
-nnunet_data_dir = 'nnUNet_raw_data_base/nnUNet_raw_data/Task501_ErectorSpinaeSegmentation/'
+nnunet_data_dir = os.path.join(os.environ['nnUNet_raw'], 'Dataset001_FR')
 
 imagesTr_dir = os.path.join(nnunet_data_dir, 'imagesTr')
 labelsTr_dir = os.path.join(nnunet_data_dir, 'labelsTr')
@@ -28,6 +28,9 @@ for patient_id in range(1, 56):  # Assuming patient folders are named 1 to 55
     image_file = None
     for filename in os.listdir(patient_folder):
         if filename.startswith(' mDIXON-Quant_BH') and filename.endswith('.nii'):
+            image_file = os.path.join(patient_folder, filename)
+            break
+        elif filename.startswith(' mDIXON-Quant_BH_v3') and filename.endswith('.nii'):
             image_file = os.path.join(patient_folder, filename)
             break
     if image_file is None:
@@ -50,34 +53,25 @@ for patient_id in range(1, 56):  # Assuming patient folders are named 1 to 55
     lbl = nib.load(label_file)
     nib.save(lbl, label_dest)
 
+# Create the dataset.json file according to nnU-Net v2 format
 dataset = {
     "name": "Erector Spinae Segmentation",
     "description": "Segmentation of Erector Spinae muscle",
+    "reference": "",  # Optional
+    "licence": "",    # Optional
+    "release": "0.0", # Optional
     "tensorImageSize": "3D",
-    "reference": "",
-    "licence": "",
-    "release": "0.0",
-    "modality": {
+    "channel_names": {
         "0": "MRI"
     },
     "labels": {
-        "0": "background",
-        "1": "erector_spinae"
+        "background": 0,
+        "erector_spinae": 1
     },
     "numTraining": len(os.listdir(labelsTr_dir)),
-    "numTest": 0,
-    "training": [
-        {
-            "image": f"./imagesTr/{f}",
-            "label": f"./labelsTr/{f.replace('_0000.nii.gz', '.nii.gz')}"
-        }
-        for f in sorted(os.listdir(imagesTr_dir))
-    ],
-    "test": []
+    "file_ending": ".nii.gz",
+    # "overwrite_image_reader_writer": "NibabelIO"  # Optional, uncomment if needed
 }
 
 with open(os.path.join(nnunet_data_dir, 'dataset.json'), 'w') as f:
     json.dump(dataset, f, indent=4)
-
-
-
