@@ -3,7 +3,7 @@ import json
 from monai.apps.auto3dseg import AutoRunner
 
 # Define the root directory of your dataset
-dataset_dir = "/Users/samuel/Documents/EPFL/BA5/Monai-ESS/data"
+dataset_dir = "../data"
 
 # Initialize the training data list
 training_data = []
@@ -75,7 +75,7 @@ with open(data_list_file, 'w') as f:
 print(f"Dataset JSON saved to {data_list_file}")
 
 # Set the work directory
-work_dir = "/Users/samuel/Documents/EPFL/BA5/Monai-ESS/auto3dseg"
+work_dir = "outputs"
 
 # Make sure the work_dir exists
 os.makedirs(work_dir, exist_ok=True)
